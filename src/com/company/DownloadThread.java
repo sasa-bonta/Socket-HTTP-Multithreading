@@ -25,26 +25,6 @@ public class DownloadThread extends Thread{
         this.fos = new FileOutputStream(outputFile);
     }
 
-    public File getDownloads() {
-        return downloads;
-    }
-
-    public URL getImageURL() {
-        return imageURL;
-    }
-
-    public void setImageURL(URL imageURL) {
-        this.imageURL = imageURL;
-    }
-
-    public FileOutputStream getFos() {
-        return fos;
-    }
-
-    public void setFos(FileOutputStream fos) {
-        this.fos = fos;
-    }
-
     @Override
     public void run() {
         //my code here
