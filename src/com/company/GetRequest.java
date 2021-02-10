@@ -102,12 +102,11 @@ public class GetRequest {
                     e.printStackTrace();
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
-                }
-                finally {
+                } finally {
                     semaphore.release();
                 }
                 executor.execute(downloadThread);
-                semaphore.release();
+               // semaphore.release();
             }
 
 //            try {
