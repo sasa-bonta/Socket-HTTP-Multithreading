@@ -1,13 +1,9 @@
 package com.company;
 
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
+import java.io.*;
 import java.net.MalformedURLException;
+import java.net.Socket;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
@@ -19,34 +15,31 @@ import java.util.regex.Pattern;
 public class GetRequest {
 
     public static void main(String[] args) throws IOException {
-        URL url = new URL("http://me.utm.md/");
-        HttpURLConnection con = (HttpURLConnection) url.openConnection();
-        con.setRequestMethod("GET");
 
-        con.setRequestProperty("Host", "me.utm.md:80");
-        con.setRequestProperty("Content-Type", "text/html");
-        con.setRequestProperty("Accept-Language", "ro, en");
-        con.setRequestProperty("DNT", "1");
-        con.setRequestProperty("Connection", "keep-alive");
-        con.setRequestProperty("Upgrade-Insecure-Requests", "1");
+        Socket s = new Socket("me.utm.md", 80 );
 
-//        Socket socket = new Socket("me.utm.md", 80 );
-//        InputStream in = socket.getInputStream();
+        PrintWriter wtr = new PrintWriter(s.getOutputStream());
 
-        int status = con.getResponseCode();
+        //Prints the request string to the output stream
+        wtr.println("GET / HTTP/1.1");
+        wtr.println("Host: me.utm.md");
+        wtr.println("");
+        wtr.flush();
 
-        BufferedReader in = new BufferedReader(
-                new InputStreamReader(con.getInputStream()));
-        String inputLine;
-        StringBuffer content = new StringBuffer();
-        while ((inputLine = in.readLine()) != null) {
-            content.append(inputLine);
+        //Creates a BufferedReader that contains the server response
+        BufferedReader bufRead = new BufferedReader(new InputStreamReader(s.getInputStream()));
+        String outStr;
+        String content = "";
+
+        //Prints each line of the response
+        while((outStr = bufRead.readLine()) != null){
+            content += outStr;
         }
-        in.close();
 
-
-        con.disconnect();
-        System.out.println(in);
+        System.out.println(content);
+        //Closes out buffer and writer
+        bufRead.close();
+        wtr.close();
 
         Pattern pattern = Pattern.compile("[^\"']*\\.(?:png|jpg|gif)");
         List<String> allPhotos = new ArrayList<>();
@@ -55,10 +48,6 @@ public class GetRequest {
         while (m.find()) {
             allPhotos.add(m.group());
         }
-
-//        allPhotos.forEach((photo) -> {
-//            System.out.println(photo);
-//        });
 
         List<String> allPhotosLinks = new ArrayList<>();
 
