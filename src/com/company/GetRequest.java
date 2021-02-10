@@ -11,6 +11,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -18,7 +19,6 @@ import java.util.regex.Pattern;
 public class GetRequest {
 
     public static void main(String[] args) throws IOException {
-
         URL url = new URL("http://me.utm.md/");
         HttpURLConnection con = (HttpURLConnection) url.openConnection();
         con.setRequestMethod("GET");
@@ -29,6 +29,9 @@ public class GetRequest {
         con.setRequestProperty("DNT", "1");
         con.setRequestProperty("Connection", "keep-alive");
         con.setRequestProperty("Upgrade-Insecure-Requests", "1");
+
+//        Socket socket = new Socket("me.utm.md", 80 );
+//        InputStream in = socket.getInputStream();
 
         int status = con.getResponseCode();
 
@@ -41,8 +44,9 @@ public class GetRequest {
         }
         in.close();
 
+
         con.disconnect();
-//        System.out.println(content);
+        System.out.println(in);
 
         Pattern pattern = Pattern.compile("[^\"']*\\.(?:png|jpg|gif)");
         List<String> allPhotos = new ArrayList<>();
@@ -70,23 +74,24 @@ public class GetRequest {
 
         Pattern pattern2 = Pattern.compile("([^\\/]+$)");
 
-//        allPhotosLinks.forEach((link) -> {
-//            System.out.println(link);
-//            Matcher fileName = pattern2.matcher(link);
-//            while (fileName.find()) {
-//                System.out.println(fileName.group());
-//            }
-
-            //http://mib.utm.md/files/news/EUROINVENT_2020/euroinvent.png
-            //euroinvent.png
-
-            ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(4);
+        ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(4);
+        final Semaphore semaphore = new Semaphore(2);
 
         for (String link : allPhotosLinks) {
             Matcher fileName = pattern2.matcher(link);
             DownloadThread downloadThread = null;
+
+//            int count = Thread.activeCount();
+//            System.out.println("currently active threads = " + count);
+
 //            System.out.println(link);
             if (fileName.find()) {
+
+                try {
+                    semaphore.acquire();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
 
 //                System.out.println(fileName.group());
                 try {
@@ -98,8 +103,18 @@ public class GetRequest {
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
+                finally {
+                    semaphore.release();
+                }
                 executor.execute(downloadThread);
+                semaphore.release();
             }
+
+//            try {
+//                sleep(1000);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
         }
 
         System.out.println("Maximum threads inside pool " + executor.getMaximumPoolSize());

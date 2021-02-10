@@ -14,9 +14,10 @@ import java.net.URL;
 public class DownloadThread extends Thread{
 
     final File downloads = new File("D://Programare in Retea//SocketHTTP//img//");
+//    final Semaphore semaphore = new Semaphore(2);
 
     private URL imageURL;
-    FileOutputStream fos;
+    private FileOutputStream fos;
 
     public DownloadThread (String imageURL, String fileName) throws URISyntaxException, MalformedURLException, FileNotFoundException {
         URI uri = new URI(imageURL);
@@ -28,7 +29,14 @@ public class DownloadThread extends Thread{
     @Override
     public void run() {
         //my code here
+//        try {
+//            semaphore.acquire();
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+
         BufferedImage image = null;
+
         try {
             image = ImageIO.read(imageURL);
             ImageIO.write(image, "png", fos);
@@ -37,5 +45,8 @@ public class DownloadThread extends Thread{
         } catch (IOException e) {
             e.printStackTrace();
         }
+//        finally {
+//            semaphore.release();
+//        }
     }
 }
