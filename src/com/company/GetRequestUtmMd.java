@@ -1,8 +1,9 @@
 package com.company;
 
+import javax.net.ssl.SSLSocket;
+import javax.net.ssl.SSLSocketFactory;
 import java.io.*;
 import java.net.MalformedURLException;
-import java.net.Socket;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
@@ -12,26 +13,27 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class GetRequest {
+public class GetRequestUtmMd {
 
     public static void main(String[] args) throws IOException {
 
-        Socket s = new Socket("me.utm.md", 80 );
+        SSLSocketFactory factory =
+                (SSLSocketFactory)SSLSocketFactory.getDefault();
+        SSLSocket socket =
+                (SSLSocket)factory.createSocket("www.verisign.com", 443);
 
-        PrintWriter wtr = new PrintWriter(s.getOutputStream());
+        socket.startHandshake();
+
+        PrintWriter wtr = new PrintWriter(socket.getOutputStream());
 
         //Prints the request string to the output stream
         wtr.println("GET / HTTP/1.1");
-        wtr.println("Host: me.utm.md");
-        wtr.println("Connection: keep-alive");
-        wtr.println("Accept-Language: ro,en");
-        wtr.println("DNT: 1");
-        wtr.println("Save-Data: <sd-token>");
+        wtr.println("Host: utm.md");
         wtr.println("");
         wtr.flush();
 
         //Creates a BufferedReader that contains the server response
-        BufferedReader bufRead = new BufferedReader(new InputStreamReader(s.getInputStream()));
+        BufferedReader bufRead = new BufferedReader(new InputStreamReader(socket.getInputStream()));
         String outStr;
         String content = "";
 
@@ -60,14 +62,19 @@ public class GetRequest {
 //                System.out.println(photo);
                 allPhotosLinks.add(photo);
             } else {
-//                System.out.printf("http://me.utm.md/" + photo + "\n");
-                allPhotosLinks.add("http://me.utm.md/" + photo);
+//                System.out.printf("https://utm.md/" + photo + "\n");
+                allPhotosLinks.add("https://utm.md/" + photo);
             }
         });
 
         List<String> allPaths = new ArrayList<>();
         Pattern pattern2 = Pattern.compile("([^\\/]+$)");
         File downloads = new File("D://Programare in Retea//SocketHTTP//img//");
+
+//        for (String link : allPhotosLinks) {
+//
+//            ImageDownloader.getAndWrite(link,downloads);
+//        }
 
         ThreadPoolExecutor executor = (ThreadPoolExecutor) Executors.newFixedThreadPool(4);
         final Semaphore semaphore = new Semaphore(2);
